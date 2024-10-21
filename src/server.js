@@ -1,44 +1,62 @@
-// import HTTP module (old, used on commonjs)
+// Importa o módulo HTTP (usado no modo CommonJS)
 // const http = require("node:http");
-// used on type module on package.json
+// Usado no modo ES Module conforme definido no package.json
 import http from "node:http";
+import { json } from "./middlewares/json.js";
 
-// HTTP METHODS
-// GET, POST, PUT, PATCH, DELETE
+// MÉTODOS HTTP
+// GET: Obter dados
+// POST: Enviar dados
+// PUT: Atualizar dados
+// PATCH: Atualizar parcialmente dados
+// DELETE: Excluir dados
 
-// stateful vs stateless
-// stateless app storages data externally like in a db
+// Aplicações stateful vs stateless
+// Stateful: Armazena dados internamente (ex: em memória)
+// Stateless: Armazena dados externamente (ex: em um banco de dados)
 
+// Array para armazenar usuários (em memória, stateful)
 const users = []
 
-const server = http.createServer((req, res) => {
-    // esse codigo é igual a fazer duas const, uma method e um url e acessar as propriedades method e url de req, chama-se desestruturação
+// Cria um servidor HTTP
+const server = http.createServer(async (req, res) => {
+    // Desestruturação: extrai as propriedades method e url do objeto req
     const { method, url } = req
 
+    await json(req, res)
+    
+    // Loga os cabeçalhos da requisição no console
     console.log(req.headers);
 
-    if (method == 'GET' && url == '/users'){
-        // since it accepts string, we should use JSON
+    // Rota para obter usuários (GET /users)
+    if (method === 'GET' && url === '/users') {
+        // Define o cabeçalho Content-Type como application/json e envia a lista de usuários
         return res
-        .setHeader('Content-type', 'application/json')
-        .end(String(JSON.stringify(users)))
+            .end(JSON.stringify(users))
     }
-    if (method == 'POST' && url == '/users'){
-        users.push({
-            id: 1,
-            name: 'John Doe',
-            email: 'john@email.com'
-        })
+
+    // Rota para criar um novo usuário (POST /users)
+    if (method === 'POST' && url === '/users') {
+        // Extrai name e email do corpo da requisição
+        const { name, email } = req.body
+        // Adiciona o novo usuário ao array users
+        users.push({ name, email })
         
-        // returnin an HTTP code
+        // Retorna o código HTTP 201 (Created)
         return res.writeHead(201).end()
     }
 
+    // Loga o método e a URL da requisição no console
     console.log(method, url);
 
+    // Retorna o código HTTP 404 (Not Found) para rotas não definidas
     return res.writeHead(404).end('404 - not found')
 })
 
+// Faz o servidor escutar na porta 3333
 server.listen(3333)
 
-// We will use status codes too. Mostly 200-299 for oks and 500-599 for errors
+// Usamos códigos de status HTTP para indicar o resultado das operações
+// 200-299: Sucesso
+// 400-499: Erros do cliente (ex: 404 Not Found)
+// 500-599: Erros do servidor
