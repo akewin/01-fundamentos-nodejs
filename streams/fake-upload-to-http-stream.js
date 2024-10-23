@@ -1,28 +1,30 @@
 // fake uploading to stream-http-server
-import { Readable } from 'node:stream' 
+import { Readable } from "node:stream";
 
 class oneToHundredStream extends Readable {
-    index = 1;
+	index = 1;
 
-    _read(){
-        const i = this.index++
-        setTimeout(() =>{
-            if (i > 10){
-                this.push(null)
-            } else{
-                const buf = Buffer.from(String(i))
-                this.push(buf)
-            }  
-        }, 1000)
-    }
+	_read() {
+		const i = this.index++;
+		setTimeout(() => {
+			if (i > 10) {
+				this.push(null);
+			} else {
+				const buf = Buffer.from(String(i));
+				this.push(buf);
+			}
+		}, 1000);
+	}
 }
 
-fetch('http://localhost:3334', {
-    method: 'POST',
-    body: new oneToHundredStream(),
-    duplex: 'half' //add duplex option
-}).then(response =>{
-    return response.text()
-}).then(data => {
-    console.log(data);
+fetch("http://localhost:3334", {
+	method: "POST",
+	body: new oneToHundredStream(),
+	duplex: "half", //add duplex option
 })
+	.then((response) => {
+		return response.text();
+	})
+	.then((data) => {
+		console.log(data);
+	});
